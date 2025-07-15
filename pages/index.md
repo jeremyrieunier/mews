@@ -9,9 +9,9 @@ queries:
 
 # Assumptions
 
-# Booking Rate Popularity
+# Booking Rate Choices by Customer Segments
 
-## Gender Analysis
+## Gender-Based Analysis
 
 ```sql gender_distribution
 SELECT
@@ -26,7 +26,7 @@ SELECT
   GROUP BY gender
   ORDER BY booking_count DESC
 ```
-
+Our hotel serves a male-dominated customer base with significant unknown demographics:
 <BarChart 
     data={gender_distribution}
     x=gender
@@ -42,6 +42,8 @@ SELECT
   <Column id=booking_count />
   <Column id=percentage fmt=pct2 />
 </DataTable>
+
+### Rate Preferences by Gender
 
 ```sql gender_window
 SELECT
@@ -68,6 +70,22 @@ ORDER BY gender DESC, rank
     valueFmt=pct 
 />
 
+Male guests prioritize flexibility, while female guests show more price sensitivity. Unknown guests follow entirely different booking patterns, likely representing corporate or agent bookings rather than individual travelers.
+
+**Male Guests - Flexibility Focused**
+- Fully Flexible rate dominates at 58.15% of male bookings
+- Clear preference for maximum booking flexibility over discounts
+
+**Female Guests - Balanced Approach**
+- Fully Flexible rate leads at 46.94% but less dominant than males
+- Non-Refundable rates at 18.33% - significantly higher than males (9.50%)
+- More price-conscious, willing to accept restrictions for better rates
+
+**Unknown Gender - Early Planning**
+- Early-60 days rate dominates at 49.53% - dramatically different pattern
+- Fully Flexible secondary at 27.07%
+- Suggests advance corporate booking or travel agent reservations
+
 
 ## Age Group Analysis
 
@@ -88,6 +106,7 @@ FROM ${reservations}
 GROUP BY age_group
 ORDER BY age_group
 ```
+**60.78% of bookings have unknown age data**, limiting the reliability of age-based insights. Among known ages:
 
 <BarChart 
     data={age_distribution}
@@ -106,6 +125,9 @@ ORDER BY age_group
   <Column id=booking_count />
   <Column id=percentage fmt=pct2 />
 </DataTable>
+
+
+### Rate Preferences by Age
 
 ```sql age_window
 SELECT
@@ -137,6 +159,20 @@ ORDER BY res.age_group, rank
     valueFmt=pct 
 />
 
+While all age groups prioritize flexibility, younger travelers show highest price sensitivity, while older travelers prefer advance planning discounts. However, the large proportion of unknown age data (60.78%) limits the statistical reliability of these insights for business decision-making.
+
+**Consistent Flexibility Preference Across All Ages**
+- All age groups prefer Fully Flexible rates (44-55% within each group)
+- Young travelers (0-25) most price-sensitive: 24.36% choose Non-Refundable rates
+- Middle-aged travelers (25-45): Balanced between flexibility and discounts
+
+**Statistical Reliability Limitations**
+Age groups 55+ have insufficient sample sizes for reliable business insights:
+- 55-65 group: Only 65 total bookings
+- Over 65 group: Only 16 total bookings
+
+Pattern suggestions for these groups (older travelers preferring early booking discounts) cannot be considered statistically reliable for business decision-making.
+
 ## Nationality Analysis
 ```sql nationality_distribution
 SELECT
@@ -151,6 +187,7 @@ GROUP BY nationality_code
 ORDER BY booking_count DESC
 LIMIT 10
 ```
+Our hotel attracts a diverse international clientele, though 43.82% have unknown nationality :
 
 <BarChart 
     data={nationality_distribution}
@@ -199,6 +236,19 @@ ORDER BY SUM(COUNT(*)) OVER(PARTITION BY res.nationality_code) DESC, rank
     valueFmt=pct 
 />
 
+With 43.82% unknown nationality data and several countries having small sample sizes (46-72 bookings), insights for smaller markets should be considered preliminary. Business decisions should focus on the larger markets (US, GB and DE).
+
+**European Guests -  Flexibility Seekers**
+- German guests lead flexibility preference at 71.43% Fully Flexible (154 bookings)
+- Czech guests at 76.12% (67 bookings) and Slovak guests at 63.89% (72 bookings) Fully Flexible
+- British guests show high flexibility demand at 65.24% (187 bookings)
+
+**US Guests - Balanced Value Approach**
+- Fully Flexible preferred at 44.86% but significantly lower than Europeans
+- Higher price sensitivity: 16.05% choose Non-Refundable rates
+- Unique preference for Direct Booking rates at 7.82% (highest among all nationalities)
+
+
 ## Business Segment Analysis
 ```sql business_distribution
 SELECT
@@ -209,6 +259,7 @@ FROM ${reservations}
 GROUP BY business_segment
 ORDER BY booking_count DESC
 ```
+Business segments are relatively balanced across our hotel's distribution channels:
 
 <BarChart 
     data={business_distribution}
@@ -241,6 +292,8 @@ GROUP BY res.business_segment, booking_rate
 ORDER BY res.business_segment, rank
 ```
 
+### Rate Preferences by Business Segment
+
 <Heatmap 
     data={business_window} 
     x=business_segment
@@ -249,9 +302,14 @@ ORDER BY res.business_segment, rank
     valueFmt=pct 
 />
 
+- OTA channels drive flexibility demand - guests pay premium when unable to contact hotel directly
+- FIT travelers most price-sensitive - plan ahead for discounts
+- Corporate segments balance flexibility with advance planning
+- Leisure travelers show most diverse booking patterns
 
-# Guest Online Checkin Analysis
-## Overall Baseline
+# Online Check-in Analysis
+## Overall Adoption Challenge
+
 ```sql checkin_baseline
 SELECT 
   COUNT(*) AS total_booking,
@@ -259,6 +317,14 @@ SELECT
   ROUND(SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) / COUNT(*), 4) as online_checkins_rate
 FROM ${reservations}
 ```
+
+Online check-in adoption is critically low at just 5.92%, indicating significant barriers to digital adoption or limited system availability:
+
+<DataTable data={checkin_baseline} >
+  <Column id=total_booking />
+  <Column id=online_checkins />
+  <Column id=online_checkins_rate fmt=pct2 />
+</DataTable>
 
 ## By Business Segment
 
@@ -364,19 +430,32 @@ ORDER BY day_num
   <Column id=online_checkin_rate fmt=pct2 />
 </DataTable>
 
+# Average Night Revenue Analysis
 
 
-
-```sql revenue
+```sql revenue_gender
 SELECT 
-    -- Define your guest segments
     CASE WHEN Gender = 1 THEN 'Male' WHEN Gender = 2 THEN 'Female' ELSE 'Unknown' END as gender,    
+    business_segment,
     -- Calculate revenue per capacity
-    AVG(night_cost_sum / occupied_space_sum) as avg_revenue_per_capacity,
+    ROUND(AVG((night_cost_sum / night_count) / (occupied_space_sum)), 2) as avg_revenue_per_capacity,
     COUNT(*) as bookings,
     SUM(night_cost_sum) as total_revenue
 FROM ${reservations}
-GROUP BY gender
+GROUP BY gender, business_segment
+ORDER BY avg_revenue_per_capacity DESC;
+```
+
+
+```sql business
+SELECT 
+    rate_id,    
+    -- Calculate revenue per capacity
+    ROUND(AVG((night_cost_sum / night_count) / (occupied_space_sum)), 2) as avg_revenue_per_capacity,
+    COUNT(*) as bookings,
+    SUM(night_cost_sum) as total_revenue
+FROM ${reservations}
+GROUP BY 1
 ORDER BY avg_revenue_per_capacity DESC;
 ```
 
