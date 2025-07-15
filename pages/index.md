@@ -250,7 +250,122 @@ ORDER BY res.business_segment, rank
 />
 
 
-# Guest online checking
+# Guest Online Checkin Analysis
+## Overall Baseline
+```sql checkin_baseline
+SELECT 
+  COUNT(*) AS total_booking,
+  SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) as online_checkins,
+  ROUND(SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) / COUNT(*), 4) as online_checkins_rate
+FROM ${reservations}
+```
+
+## By Business Segment
+
+```sql checkin_business
+SELECT
+  business_segment,
+  COUNT(*) as total_booking,
+  SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) AS online_checkins,
+  ROUND(SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) / COUNT(*), 4) AS online_checkin_rate
+FROM ${reservations}
+GROUP BY business_segment
+ORDER BY total_booking DESC
+```
+
+<BarChart 
+    data={checkin_business}
+    x=business_segment
+    y=total_booking
+    y2SeriesType=line
+    y2=online_checkin_rate
+    y2Fmt=pct2
+    y2Max=1
+    chartAreaHeight=350
+/>
+
+<DataTable data={checkin_business} >
+  <Column id=business_segment />
+  <Column id=total_booking />
+  <Column id=online_checkin_rate fmt=pct2 />
+</DataTable>
+
+## By Gender
+```sql checkin_gender
+SELECT
+  CASE
+    WHEN gender = 0 THEN 'Unknown'
+    WHEN gender = 1 THEN 'Male'
+    WHEN gender = 2 THEN 'Female'
+  END AS gender,
+  COUNT(*) as total_booking,
+  SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) AS online_checkins,
+  ROUND(SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) / COUNT(*), 4) AS online_checkin_rate
+FROM ${reservations}
+GROUP BY gender
+ORDER BY total_booking DESC
+```
+
+<BarChart 
+    data={checkin_gender}
+    x=gender
+    y=total_booking
+    y2SeriesType=line
+    y2=online_checkin_rate
+    y2Fmt=pct2
+    y2Max=1
+    chartAreaHeight=350
+/>
+
+<DataTable data={checkin_gender} >
+  <Column id=gender />
+  <Column id=total_booking />
+  <Column id=online_checkin_rate fmt=pct2 />
+</DataTable>
+
+```sql online
+SELECT 
+    CASE WHEN Gender = 1 THEN 'Male' WHEN Gender = 2 THEN 'Female' ELSE 'Unknown' END as gender,
+    SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) as online_checkins,
+    COUNT(*) as total_booking,
+    ROUND(SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) / COUNT(*), 4) as online_rate_pct
+FROM ${reservations}
+GROUP BY gender
+ORDER BY online_rate_pct DESC;
+```
+
+## Weekday Creation Analysis
+
+```sql weekday_online_checkin
+SELECT
+  DAYOFWEEK(created_utc) AS day_num,
+  DAYNAME(created_utc) AS weekday,
+  COUNT(*) as total_booking,
+  ROUND(SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) / COUNT(*), 4) as online_checkin_rate
+FROM ${reservations}
+GROUP BY day_num, weekday
+ORDER BY day_num
+```
+
+<BarChart 
+    data={weekday_online_checkin}
+    x=weekday
+    y=total_booking
+    y2SeriesType=line
+    y2=online_checkin_rate
+    y2Fmt=pct2
+    y2Max=1
+    chartAreaHeight=350
+/>
+
+<DataTable data={weekday_online_checkin} >
+  <Column id=weekday />
+  <Column id=total_booking />
+  <Column id=online_checkin_rate fmt=pct2 />
+</DataTable>
+
+
+
 
 ```sql revenue
 SELECT 
@@ -274,4 +389,15 @@ SELECT
 FROM ${reservations} res  
 JOIN ${rates} r ON res.rate_id = r.rate_id
 GROUP BY gender, res.business_segment
+```
+
+```sql teste
+SELECT
+  business_segment,
+  COUNT(*) as booking_count,
+  SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) AS online_checkins,
+  SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) / COUNT(*) AS online_checkin_rate
+FROM ${reservations}
+GROUP BY business_segment
+ORDER BY booking_count DESC
 ```
