@@ -333,7 +333,7 @@ While female guests show the highest revenue per capacity, they represent only 1
 <BubbleChart 
     data={revenue_per_capacity_by_gender_business}
     x=total_bookings
-    y=avg_night_revenue_per_capacity
+    y=avg_night_revenue_per_occupied_capacity
     yFmt=usd0
     series=gender_business_segment
     size=total_revenue
