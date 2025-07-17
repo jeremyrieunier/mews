@@ -20,17 +20,17 @@ SELECT
     WHEN gender = 1 then 'Male'
     WHEN gender = 2 then 'Female'
   END AS gender,
-  COUNT(*) AS booking_count,
+  COUNT(*) AS total_bookings,
   ROUND(COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS percentage
   FROM ${reservations}
   GROUP BY gender
-  ORDER BY booking_count DESC
+  ORDER BY total_bookings DESC
 ```
 Our hotel serves a male-dominated customer base with significant unknown demographics:
 <BarChart 
     data={gender_distribution}
     x=gender
-    y=booking_count
+    y=total_bookings
     y2SeriesType=line
     y2=percentage
     y2Fmt=pct2
@@ -39,13 +39,13 @@ Our hotel serves a male-dominated customer base with significant unknown demogra
 
 <DataTable data={gender_distribution} >
   <Column id=gender />
-  <Column id=booking_count />
+  <Column id=total_bookings />
   <Column id=percentage fmt=pct2 />
 </DataTable>
 
 ### Rate Preferences by Gender
 
-```sql gender_window
+```sql gender_rate_preferences
 SELECT
   CASE
     WHEN gender = 0 THEN 'Unknown'
@@ -53,8 +53,8 @@ SELECT
     WHEN gender = 2 THEN 'Female'
   END AS gender,
   r.rate_name AS booking_rate,
-  COUNT(*) AS booking_count,
-  ROUND(COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY gender), 4) AS pct_within_gender,
+  COUNT(*) AS total_bookings,
+  ROUND(COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY gender), 4) AS percentage_within_gender,
   DENSE_RANK() OVER (PARTITION BY gender ORDER BY COUNT(*) DESC) AS rank
 FROM ${reservations} res
 JOIN ${rates} r
@@ -63,10 +63,10 @@ GROUP BY gender, booking_rate
 ORDER BY gender DESC, rank
 ```
 <Heatmap 
-    data={gender_window} 
+    data={gender_rate_preferences} 
     x=gender 
     y=booking_rate 
-    value=pct_within_gender 
+    value=percentage_within_gender 
     valueFmt=pct 
 />
 
@@ -100,7 +100,7 @@ SELECT
     WHEN age_group = 65 THEN '55-65'
     WHEN age_group = 100 THEN '> 65'
   END AS age_group,
-  COUNT(*) AS booking_count,
+  COUNT(*) AS total_bookings,
   ROUND(COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS percentage
 FROM ${reservations}
 GROUP BY age_group
@@ -111,25 +111,26 @@ ORDER BY age_group
 <BarChart 
     data={age_distribution}
     x=age_group
-    y=booking_count
-    seriesOrder={['Unknown','0-25','25-35','35-45','45-55','55-65','> 65']}
+    y=total_bookings
+    sort=false
     y2SeriesType=line
     y2=percentage
     y2Fmt=pct2
     y2Max=1
+    y2Min=0
     chartAreaHeight=350
 />
 
 <DataTable data={age_distribution} >
   <Column id=age_group />
-  <Column id=booking_count />
+  <Column id=total_bookings />
   <Column id=percentage fmt=pct2 />
 </DataTable>
 
 
 ### Rate Preferences by Age
 
-```sql age_window
+```sql age_rate_preferences
 SELECT
   CASE
     WHEN res.age_group = 0 THEN 'Unknowm'
@@ -141,8 +142,8 @@ SELECT
     WHEN res.age_group = 100 THEN '> 65'
   END AS age_group,
   r.rate_name AS booking_rate,
-  COUNT(*) AS booking_count,
-  ROUND(COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY res.age_group), 4) as pct_within_age_group,
+  COUNT(*) AS total_bookings,
+  ROUND(COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY res.age_group), 4) as percentage_within_age_group,
   DENSE_RANK() OVER (PARTITION BY res.age_group ORDER BY COUNT(*) DESC) as rank
 FROM ${reservations} res
 JOIN ${rates} r
@@ -152,10 +153,10 @@ ORDER BY res.age_group, rank
 ```
 
 <Heatmap 
-    data={age_window} 
+    data={age_rate_preferences} 
     x=age_group 
     y=booking_rate 
-    value=pct_within_age_group
+    value=percentage_within_age_group
     valueFmt=pct 
 />
 
@@ -180,11 +181,11 @@ SELECT
     WHEN nationality_code = 'NULL' THEN 'Unknown'
     ELSE nationality_code
   END AS nationality_code,
-  COUNT(*) AS booking_count,
+  COUNT(*) AS total_bookings,
   ROUND(COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS percentage
 FROM ${reservations}
 GROUP BY nationality_code
-ORDER BY booking_count DESC
+ORDER BY total_bookings DESC
 LIMIT 10
 ```
 Our hotel attracts a diverse international clientele, though 43.82% have unknown nationality :
@@ -192,21 +193,22 @@ Our hotel attracts a diverse international clientele, though 43.82% have unknown
 <BarChart 
     data={nationality_distribution}
     x=nationality_code
-    y=booking_count
+    y=total_bookings
     y2SeriesType=line
     y2=percentage
     y2Fmt=pct2
     y2Max=1
+    y2Min=0
     chartAreaHeight=350
 />
 
 <DataTable data={nationality_distribution} >
   <Column id=nationality_code />
-  <Column id=booking_count />
+  <Column id=total_bookings />
   <Column id=percentage fmt=pct2 />
 </DataTable>
 
-```sql windows_nationality
+```sql nationality_rate_preferences
 WITH nationalities_above_40_booking AS (
   SELECT nationality_code
   FROM ${reservations}
@@ -216,8 +218,8 @@ WITH nationalities_above_40_booking AS (
 SELECT
   res.nationality_code,
   r.rate_name AS booking_rate,
-  COUNT(*) AS booking_count,
-  ROUND(COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY res.nationality_code), 4) as pct_within_nationality,
+  COUNT(*) AS total_bookings,
+  ROUND(COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY res.nationality_code), 4) as percentage_within_nationality,
   DENSE_RANK() OVER (PARTITION BY res.nationality_code ORDER BY COUNT(*) DESC) as rank
 FROM ${reservations} res
 JOIN ${rates} r
@@ -229,10 +231,10 @@ ORDER BY SUM(COUNT(*)) OVER(PARTITION BY res.nationality_code) DESC, rank
 ```
 
 <Heatmap 
-    data={windows_nationality} 
+    data={nationality_rate_preferences} 
     x=nationality_code
     y=booking_rate 
-    value=pct_within_nationality
+    value=percentage_within_nationality
     valueFmt=pct 
 />
 
@@ -250,40 +252,41 @@ With 43.82% unknown nationality data and several countries having small sample s
 
 
 ## Business Segment Analysis
-```sql business_distribution
+```sql business_segment_distribution
 SELECT
   business_segment,
-  COUNT(*) AS booking_count,
+  COUNT(*) AS total_bookings,
   ROUND(COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS percentage
 FROM ${reservations}
 GROUP BY business_segment
-ORDER BY booking_count DESC
+ORDER BY total_bookings DESC
 ```
 Business segments are relatively balanced across our hotel's distribution channels:
 
 <BarChart 
-    data={business_distribution}
+    data={business_segment_distribution}
     x=business_segment
-    y=booking_count
+    y=total_bookings
     y2SeriesType=line
     y2=percentage
     y2Fmt=pct2
     y2Max=1
+    y2Min=0
     chartAreaHeight=350
 />
 
-<DataTable data={business_distribution} >
+<DataTable data={business_segment_distribution} >
   <Column id=business_segment />
-  <Column id=booking_count />
+  <Column id=total_bookings />
   <Column id=percentage fmt=pct2 />
 </DataTable>
 
-```sql business_window
+```sql business_segment_rate_preferences
 SELECT
   res.business_segment,
   r.rate_name AS booking_rate,
-  COUNT(*) AS booking_count,
-  ROUND(COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY res.business_segment), 4) as pct_within_age_group,
+  COUNT(*) AS total_bookings,
+  ROUND(COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY res.business_segment), 4) as percentage_within_age_group,
   DENSE_RANK() OVER (PARTITION BY res.business_segment ORDER BY COUNT(*) DESC) as rank
 FROM ${reservations} res
 JOIN ${rates} r
@@ -295,10 +298,10 @@ ORDER BY res.business_segment, rank
 ### Rate Preferences by Business Segment
 
 <Heatmap 
-    data={business_window} 
+    data={business_segment_rate_preferences} 
     x=business_segment
     y=booking_rate 
-    value=pct_within_age_group
+    value=percentage_within_age_group
     valueFmt=pct 
 />
 
@@ -310,7 +313,7 @@ ORDER BY res.business_segment, rank
 # Online Check-in Analysis
 ## Overall Adoption Challenge
 
-```sql checkin_baseline
+```sql online_checkin_overall
 SELECT 
   COUNT(*) AS total_booking,
   SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) as online_checkins,
@@ -320,7 +323,7 @@ FROM ${reservations}
 
 Online check-in adoption is critically low at just 5.92%, indicating significant barriers to digital adoption or limited system availability:
 
-<DataTable data={checkin_baseline} >
+<DataTable data={online_checkin_overall} >
   <Column id=total_booking />
   <Column id=online_checkins />
   <Column id=online_checkins_rate fmt=pct2 />
@@ -328,7 +331,7 @@ Online check-in adoption is critically low at just 5.92%, indicating significant
 
 ## By Business Segment
 
-```sql checkin_business
+```sql online_checkin_by_business_segment
 SELECT
   business_segment,
   COUNT(*) as total_booking,
@@ -340,24 +343,37 @@ ORDER BY total_booking DESC
 ```
 
 <BarChart 
-    data={checkin_business}
+    data={online_checkin_by_business_segment}
     x=business_segment
     y=total_booking
     y2SeriesType=line
     y2=online_checkin_rate
     y2Fmt=pct2
     y2Max=1
+    y2Min=0
     chartAreaHeight=350
 />
 
-<DataTable data={checkin_business} >
+<DataTable data={online_checkin_by_business_segment} >
   <Column id=business_segment />
   <Column id=total_booking />
   <Column id=online_checkin_rate fmt=pct2 />
 </DataTable>
 
+OTA Channels Lead Digital Adoption:
+- OTAs: 9.07% online check-in rate (562 total bookings)
+- OTA Netto: 7.80% online check-in rate (551 total bookings)
+- Leisure: 8.42% online check-in rate (499 total bookings)
+
+Traditional Channels Show Resistance:
+
+- Direct Business: 2.20% online check-in rate (318 total bookings)
+- FIT: 0.97% online check-in rate (516 total bookings) - surprisingly lowest
+- Film: 0% online check-in rate (55 total bookings)
+
 ## By Gender
-```sql checkin_gender
+There's a consistent low adoption accross genders:
+```sql online_checkin_by_gender
 SELECT
   CASE
     WHEN gender = 0 THEN 'Unknown'
@@ -373,36 +389,32 @@ ORDER BY total_booking DESC
 ```
 
 <BarChart 
-    data={checkin_gender}
+    data={online_checkin_by_gender}
     x=gender
     y=total_booking
     y2SeriesType=line
     y2=online_checkin_rate
     y2Fmt=pct2
     y2Max=1
+    y2Min=0
     chartAreaHeight=350
 />
 
-<DataTable data={checkin_gender} >
+<DataTable data={online_checkin_by_gender} >
   <Column id=gender />
   <Column id=total_booking />
   <Column id=online_checkin_rate fmt=pct2 />
 </DataTable>
 
-```sql online
-SELECT 
-    CASE WHEN Gender = 1 THEN 'Male' WHEN Gender = 2 THEN 'Female' ELSE 'Unknown' END as gender,
-    SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) as online_checkins,
-    COUNT(*) as total_booking,
-    ROUND(SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) / COUNT(*), 4) as online_rate_pct
-FROM ${reservations}
-GROUP BY gender
-ORDER BY online_rate_pct DESC;
-```
+Unknown guests never use online check-in, likely representing corporate bookings or travel agent reservations where end guests handle their own check-in.
+
+
 
 ## Weekday Creation Analysis
 
-```sql weekday_online_checkin
+Saturday shows the highest online check-in adoption rate at 12.33%, though this is based on a small denominator of only 146 total bookings.
+
+```sql online_checkin_by_weekday
 SELECT
   DAYOFWEEK(created_utc) AS day_num,
   DAYNAME(created_utc) AS weekday,
@@ -414,69 +426,88 @@ ORDER BY day_num
 ```
 
 <BarChart 
-    data={weekday_online_checkin}
+    data={online_checkin_by_weekday}
     x=weekday
     y=total_booking
     y2SeriesType=line
     y2=online_checkin_rate
+    sort=false
     y2Fmt=pct2
     y2Max=1
+    y2Min=0
     chartAreaHeight=350
 />
 
-<DataTable data={weekday_online_checkin} >
+<DataTable data={online_checkin_by_weekday} >
   <Column id=weekday />
   <Column id=total_booking />
   <Column id=online_checkin_rate fmt=pct2 />
 </DataTable>
 
-# Average Night Revenue Analysis
+The small denominator (148 total online check-ins) makes detailed analysis unreliable:
+- Saturday's high rate based on only 18 online check-ins
+- Daily variations likely represent statistical noise rather than meaningful patterns
+- Not enough data for confident business decisions
 
+# Average Night Revenue per Occupied Capacity Analysis
 
-```sql revenue_gender
+## Methodology
+Average night revenue per occupied capacity calculated as:
+> (night_cost_sum / night_count) / occupied_space_sum
+
+This metric provides the average night revenue per single occupied capacity unit (bed/space), normalizing for both stay length and room capacity to enable true profitability comparison across guest segments.
+
+## By Gender
+
+```sql revenue_per_capacity_by_gender
 SELECT 
-    CASE WHEN Gender = 1 THEN 'Male' WHEN Gender = 2 THEN 'Female' ELSE 'Unknown' END as gender,    
-    business_segment,
-    -- Calculate revenue per capacity
-    ROUND(AVG((night_cost_sum / night_count) / (occupied_space_sum)), 2) as avg_revenue_per_capacity,
+    CASE
+      WHEN gender = 1 THEN 'Male'
+      WHEN gender = 2 THEN 'Female'
+      WHEN gender = 0 THEN 'Unknown'
+    END AS gender,    
+    ROUND(AVG((night_cost_sum / night_count) / (occupied_space_sum)), 2) AS avg_night_revenue_per_occupied_capacity,
     COUNT(*) as bookings,
+    ROUND(COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS percentage_booking,
     SUM(night_cost_sum) as total_revenue
 FROM ${reservations}
-GROUP BY gender, business_segment
-ORDER BY avg_revenue_per_capacity DESC;
+GROUP BY gender, 
+ORDER BY avg_night_revenue_per_occupied_capacity DESC;
 ```
+<DataTable data={revenue_per_capacity_by_gender} >
+  <Column id=gender />
+  <Column id=avg_night_revenue_per_occupied_capacity />
+  <Column id=bookings />
+  <Column id=percentage_booking fmt=pct />
+</DataTable>
+
+While female guests show the highest revenue per capacity, they represent only 14.4% of total bookings (360 out of 2,501), making this the smallest size among the three gender segments. Male guests drive volume with 51.8% of bookings, while Unknown guests represent 33.8% with significantly lower profitability.
+
+## Cross-Segment Analysis: Gender × Business Segment
 
 
-```sql business
+```sql revenue_per_capacity_by_gender_business
 SELECT 
-    rate_id,    
-    -- Calculate revenue per capacity
-    ROUND(AVG((night_cost_sum / night_count) / (occupied_space_sum)), 2) as avg_revenue_per_capacity,
-    COUNT(*) as bookings,
-    SUM(night_cost_sum) as total_revenue
-FROM ${reservations}
-GROUP BY 1
-ORDER BY avg_revenue_per_capacity DESC;
+   CASE WHEN Gender = 1 THEN 'Male' WHEN Gender = 2 THEN 'Female' ELSE 'Unknown' END || ' ' || BusinessSegment as gender_business_segment,
+   COUNT(*) as total_bookings,
+   ROUND(AVG((NightCost_Sum / NightCount) / NULLIF(OccupiedSpace_Sum, 0)), 2) as avg_night_revenue_per_capacity,
+   ROUND(SUM(NightCost_Sum), 2) as total_revenue
+FROM reservations
+WHERE OccupiedSpace_Sum > 0 AND NightCount > 0
+GROUP BY gender_business_segment
+ORDER BY avg_night_revenue_per_capacity DESC;
 ```
 
+<BubbleChart 
+    data={revenue_per_capacity_by_gender_business}
+    x=total_bookings
+    y=avg_night_revenue_per_capacity
+    yFmt=usd0
+    series=gender_business_segment
+    size=total_revenue
+    scaleTo=1.2
+    xMin=0
+    chartAreaHeight=350
+/>
 
-```sql hypotheses
-SELECT 
-    CASE WHEN Gender = 1 THEN 'Male' WHEN Gender = 2 THEN 'Female' ELSE 'Unknown' END as gender,
-    res.business_segment,
-    COUNT(*) as booking_count,
-FROM ${reservations} res  
-JOIN ${rates} r ON res.rate_id = r.rate_id
-GROUP BY gender, res.business_segment
-```
-
-```sql teste
-SELECT
-  business_segment,
-  COUNT(*) as booking_count,
-  SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) AS online_checkins,
-  SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) / COUNT(*) AS online_checkin_rate
-FROM ${reservations}
-GROUP BY business_segment
-ORDER BY booking_count DESC
-```
+>
