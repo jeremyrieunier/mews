@@ -1,0 +1,34 @@
+---
+title: Dashboard
+queries:
+  - rates.sql
+  - reservations.sql
+  - gender_distribution.sql
+  - gender_rate_preferences.sql
+  - age_distribution.sql
+  - age_rate_preferences.sql
+  - nationality_distribution.sql
+  - nationality_rate_preferences.sql
+  - business_segment_distribution.sql
+  - business_segment_rate_preferences.sql
+  - online_checkin_overall.sql
+  - online_checkin_by_business_segment.sql
+  - online_checkin_by_gender.sql
+  - online_checkin_by_weekday.sql
+  - revenue_per_capacity_by_gender.sql
+  - revenue_per_capacity_by_gender_business.sql
+---
+
+-- ```sql key
+-- SELECT 
+--    DATE(created_utc) as booking_date,
+--    dayname(created_utc) as weekday,
+--    COUNT(*) as total_bookings,
+--    SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) as online_checkins,
+--    ROUND(SUM(CASE WHEN is_online_checkin = 1 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as online_checkin_rate,
+--    ROUND(AVG((night_cost_sum / night_count) / occupied_space_sum), 2) as avg_revenue_per_capacity,
+--    SUM(night_cost_sum) as total_revenue
+-- FROM ${reservations}
+-- GROUP BY booking_date, weekday
+-- ORDER BY booking_date
+-- ```
