@@ -20,8 +20,28 @@ queries:
 ---
 
 # Executive Summary
+## Booking Rate Preferences
+- Male guests prioritize flexibility (58% choose Fully Flexible rates)
+- Female guests are more price-conscious (higher non-refundable rate adoption)
+- Business segments show stronger patterns than demographics
 
-# Assumptions
+## Online Check-in Challenge
+- Critically low adoption at 5.92% 
+- OTA guests most likely to adopt (9% rate) vs. corporate guests (2% rate)
+- Unknown guests never use online check-in (0% adoption)
+
+## Profitability Insights
+- Female Leisure travelers most profitable ($63.46 per night per capacity)
+- Unknown FIT travelers occupy significant space with minimal returns ($13.47 per capacity)
+
+________
+
+# Assumptions and Limitations
+- All reservation states included: Analysis includes cancelled reservations under the assumption that booking intent existed regardless of cancellation reason
+- No duplicate validation performed: Assumes dataset has been pre-cleaned by data platform/engineering team with no booking ID duplicates
+- Nationality analysis limited: Only included countries with 40+ bookings for reliability
+
+________
 
 # Booking Rate Choices by Customer Segments
 
@@ -196,6 +216,8 @@ Business segments are relatively balanced across our hotel's distribution channe
 - Corporate segments balance flexibility with advance planning
 - Leisure travelers show most diverse booking patterns
 
+________
+
 # Online Check-in Analysis
 ## Overall Adoption Challenge
 Online check-in adoption is critically low at just 5.92%, indicating significant barriers to digital adoption or limited system availability:
@@ -286,8 +308,9 @@ The small denominator (148 total online check-ins) makes detailed analysis unrel
 - Daily variations likely represent statistical noise rather than meaningful patterns
 - Not enough data for confident business decisions
 
-# Average Night Revenue per Occupied Capacity Analysis
+_______
 
+# Average Night Revenue per Occupied Capacity Analysis
 ## Methodology
 Average night revenue per occupied capacity calculated as:
 > (night_cost_sum / night_count) / occupied_space_sum
@@ -303,7 +326,7 @@ This metric provides the average night revenue per single occupied capacity unit
   <Column id=percentage_booking fmt=pct />
 </DataTable>
 
-While female guests show the highest revenue per capacity, they represent only 14.4% of total bookings (360 out of 2,501), making this the smallest size among the three gender segments. Male guests drive volume with 51.8% of bookings, while Unknown guests represent 33.8% with significantly lower profitability.
+While female guests show the highest revenue per capacity, they represent only 14.4% of total bookings (360 out of 2,501), making this the smallest size among the 3 gender segments. Male guests drive volume with 51.8% of bookings, while Unknown guests represent 33.8% with significantly lower profitability.
 
 ## Cross-Segment Analysis: Gender × Business Segment
 
@@ -318,5 +341,39 @@ While female guests show the highest revenue per capacity, they represent only 1
     xMin=0
     chartAreaHeight=350
 />
+
+ - Male OTAs and Male OTA Nette appear as the largest bubbles in the high-volume, high-profitability quadrant.
+ - Female guests consistently outperform across all business segments despite representing smaller booking volumes.
+ - Unknown segments systematically underperform, particularly in FIT and Film channels.
+
+
+### Most Profitable Guest Segments
+- **Female Leisure travelers**: $63.46 per night per capacity (72 bookings, 2.88% of total bookings, $38.7K total revenue)
+- **Female OTA guests**: $62.82 per night per capacity (77 bookings, 3.08% of total bookings, $41K total revenue)
+- **Male OTA guests**: $59.24 per night per capacity (477 bookings, 19.07% of total bookings, $282K total revenue)
+
+### Least Profitable Guest Segments
+- **Unknown Film segment**: $4.18 per night per capacity (16 bookings, 0.64% of total bookings, $18.3K total revenue)
+- **Unknown FIT travelers**: $13.47 per night per capacity (340 bookings, 13.59% of total bookings, $68.3K total revenue)
+___________
+
+# Conclusions and Recommendations
+
+## Data Quality Improvements
+- Improve demographic data collection: 34% unknown gender, 61% unknown age limits analysis reliability
+- Enhance nationality capture: 44% unknown nationality prevents market-specific strategies
+- Focus on business segment data. Most reliable and actionable for decision-making
+
+## Online Check-in Priority Investigation
+- System usability review required: 5.92% adoption suggests fundamental barriers
+- Partner with OTA platforms for promotion (highest current adoption at 9%)
+- Investigate corporate booking processes - Unknown guests represent 34% of bookings but 0% online check-in
+
+## Revenue Optimization Strategy
+- Target Female Leisure segment for premium offerings (highest profitability)
+- Reevaluate FIT channel strategy - 21% of bookings but lowest revenue per capacity
+- Optimize OTA partnerships - balance volume (Male OTAs) with profitability (Female segments)
+
+___________
 
 I've made this app using [Evidence.dev](https://evidence.dev/). Code is on [GitHub](https://github.com/jeremyrieunier/mews). And this is mon [Linkedin profile](https://www.linkedin.com/in/jeremyrieunier/).
