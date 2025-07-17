@@ -1,0 +1,11 @@
+SELECT
+  res.business_segment,
+  r.rate_name AS booking_rate,
+  COUNT(*) AS total_bookings,
+  ROUND(COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY res.business_segment), 4) as percentage_within_age_group,
+  DENSE_RANK() OVER (PARTITION BY res.business_segment ORDER BY COUNT(*) DESC) as rank
+FROM ${reservations} res
+JOIN ${rates} r
+  ON res.rate_id = r.rate_id
+GROUP BY res.business_segment, booking_rate 
+ORDER BY res.business_segment, rank
