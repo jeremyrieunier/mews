@@ -7,7 +7,7 @@ SELECT
    COUNT(*) AS total_bookings,
    ROUND(AVG((night_cost_sum / night_count) / (occupied_space_sum)), 2) AS avg_night_revenue_per_occupied_capacity,
    ROUND(COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS percentage_booking,
-   ROUND(SUM(night_cost_sum), 2) as total_revenue
+   ROUND(SUM(night_cost_sum), 2) AS total_revenue
 FROM ${reservations}
 WHERE occupied_space_sum > 0 AND night_count > 0
 GROUP BY gender_business_segment

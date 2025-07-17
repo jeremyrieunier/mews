@@ -5,9 +5,9 @@ SELECT
       WHEN gender = 0 THEN 'Unknown'
     END AS gender,    
     ROUND(AVG((night_cost_sum / night_count) / (occupied_space_sum)), 2) AS avg_night_revenue_per_occupied_capacity,
-    COUNT(*) as total_booking,
+    COUNT(*) AS total_booking,
     ROUND(COUNT(*) / SUM(COUNT(*)) OVER(), 4) AS percentage_booking,
-    SUM(night_cost_sum) as total_revenue
+    SUM(night_cost_sum) AS total_revenue
 FROM ${reservations}
 GROUP BY gender, 
 ORDER BY avg_night_revenue_per_occupied_capacity DESC;

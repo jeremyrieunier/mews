@@ -8,8 +8,8 @@ SELECT
   res.nationality_code,
   r.rate_name AS booking_rate,
   COUNT(*) AS total_bookings,
-  ROUND(COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY res.nationality_code), 4) as percentage_within_nationality,
-  DENSE_RANK() OVER (PARTITION BY res.nationality_code ORDER BY COUNT(*) DESC) as rank
+  ROUND(COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY res.nationality_code), 4) AS percentage_within_nationality,
+  DENSE_RANK() OVER (PARTITION BY res.nationality_code ORDER BY COUNT(*) DESC) AS rank
 FROM ${reservations} res
 JOIN ${rates} r
   ON res.rate_id = r.rate_id

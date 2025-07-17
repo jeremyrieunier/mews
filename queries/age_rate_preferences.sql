@@ -10,8 +10,8 @@ SELECT
   END AS age_group,
   r.rate_name AS booking_rate,
   COUNT(*) AS total_bookings,
-  ROUND(COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY res.age_group), 4) as percentage_within_age_group,
-  DENSE_RANK() OVER (PARTITION BY res.age_group ORDER BY COUNT(*) DESC) as rank
+  ROUND(COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY res.age_group), 4)  percentage_within_age_group,
+  DENSE_RANK() OVER (PARTITION BY res.age_group ORDER BY COUNT(*) DESC) AS rank
 FROM ${reservations} res
 JOIN ${rates} r
   ON res.rate_id = r.rate_id
