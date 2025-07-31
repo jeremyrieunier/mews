@@ -14,6 +14,7 @@ queries:
   - online_checkin_overall.sql
   - online_checkin_by_business_segment.sql
   - online_checkin_by_gender.sql
+  - online_checkin_by_gender_age.sql
   - online_checkin_by_weekday.sql
   - revenue_per_capacity_by_gender.sql
   - revenue_per_capacity_by_gender_business.sql
@@ -184,7 +185,7 @@ Pattern suggestions for these groups (older travelers preferring early booking d
 ```sql
 SELECT
   CASE
-    WHEN res.age_group = 0 THEN 'Unknowm'
+    WHEN res.age_group = 0 THEN 'Unknown'
     WHEN res.age_group = 25 THEN '0-25'
     WHEN res.age_group = 35 THEN '25-35'
     WHEN res.age_group = 45 THEN '35-45'
@@ -473,6 +474,54 @@ ORDER BY total_booking DESC
 
 </Details>
 
+## Online Check-in by Gender and Age
+The gender × age segmentation reveals actionable patterns that pure demographic analysis missed, with Male 25-55 segments showing highest digital adoption: 
+
+<BubbleChart 
+    data={online_checkin_by_gender_age}
+    x=total_bookings
+    y=online_checkin_rate
+    yFmt=pct
+    series=gender_age_segment
+    size=online_checkins
+    scaleTo=1.2
+    xMin=0
+    yMin=0
+    chartAreaHeight=350
+  >
+  <ReferenceArea 
+    xMin=120 
+    xMax=200 
+    yMin=0.15
+    yMax=0.23
+    label="Male Tech-Savvy" 
+    color="positive"
+    border={true}
+    labelPosition="center"
+  />
+
+    <ReferenceArea 
+    xMin=40 
+    xMax=110 
+    yMin=0.04
+    yMax=0.11
+    label="Female/Senior Low Adoption" 
+    color="info"
+    border={true}
+    labelPosition="center"
+  />
+
+</BubbleChart>
+
+- Male 25-55 age range shows highest digital adoption across all segments
+- Female guests consistently less likely to use online check-in regardless of age
+- Sample sizes for 55+ segments too small for reliable targeting (11-54 bookings)
+
+
+
+
+
+
 ## Online Check-in by Weekday
 Saturday shows the highest online check-in adoption rate at 12.33%, though this is based on a small denominator of only 146 total bookings.
 
@@ -617,6 +666,8 @@ ___________
 ## Online Check-in Priority Investigation
 - System usability review required: 5.92% adoption suggests fundamental barriers
 - Partner with OTA platforms for promotion (highest current adoption at 9%)
+- Target Male 25-55 segments for online check-in promotion campaigns
+- Investigate female resistance to digital check-in across all age groups
 - Investigate corporate booking processes - Unknown guests represent 34% of bookings but 0% online check-in
 
 ## Revenue Optimization Strategy
