@@ -530,7 +530,7 @@ This metric provides the average night revenue per single occupied capacity unit
 <DataTable data={revenue_per_capacity_by_gender} >
   <Column id=gender />
   <Column id=avg_night_revenue_per_occupied_capacity />
-  <Column id=bookings />
+  <Column id=total_booking />
   <Column id=percentage_booking fmt=pct />
 </DataTable>
 
